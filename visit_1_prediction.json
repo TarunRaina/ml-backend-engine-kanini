@@ -7,7 +7,7 @@
     "Cardiology": 0.3,
     "Neurology": 0.25,
     "Respiratory": 0.05,
-    "Orthopedics": 0.05,
+    "Orthopedics": 0.55,
     "General Medicine": 0.65
   },
   "explainability": {
@@ -20,7 +20,8 @@
       ]
     },
     "department_reasoning": {
-      "Emergency": "Critical symptoms present"
+      "Emergency": "Critical symptoms present",
+      "Orthopedics": "Musculoskeletal symptoms: Neck pain"
     },
     "score_breakdown": {
       "symptom_score": 17,

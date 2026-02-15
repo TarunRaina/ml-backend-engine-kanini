@@ -7,7 +7,7 @@
     "Cardiology": 0.45,
     "Neurology": 0.3,
     "Respiratory": 0.05,
-    "Orthopedics": 0.39999999999999997,
+    "Orthopedics": 0.35,
     "General Medicine": 0.4
   },
   "explainability": {

@@ -1,7 +1,10 @@
 {
   "risk_level": "Low",
   "risk_score": 0.7499,
-  "recommended_department": "Cardiology",
+  "recommended_departments": [
+    "Cardiology"
+  ],
+  "primary_department": "Cardiology",
   "department_scores": {
     "Cardiology": 0.5230889916419983,
     "Emergency": 0.023990293964743614,

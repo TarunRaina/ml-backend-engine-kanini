@@ -1,0 +1,86 @@
+[
+  {
+    "test": "EMERGENCY - Severe Trauma",
+    "expected": "Emergency",
+    "actual": "Emergency",
+    "match": true,
+    "scores": {
+      "Emergency": 0.8,
+      "Cardiology": 0.25,
+      "Neurology": 0.3,
+      "Respiratory": 0.05,
+      "Orthopedics": 0.05,
+      "General Medicine": 0.2
+    }
+  },
+  {
+    "test": "CARDIOLOGY - Chest Pain + Cardiac History",
+    "expected": "Cardiology",
+    "actual": "Cardiology",
+    "match": true,
+    "scores": {
+      "Emergency": 0.7500000000000001,
+      "Cardiology": 1.0,
+      "Neurology": 0.05,
+      "Respiratory": 0.45,
+      "Orthopedics": 0.05,
+      "General Medicine": 0.4
+    }
+  },
+  {
+    "test": "NEUROLOGY - Seizures + Neuro History",
+    "expected": "Neurology",
+    "actual": "Neurology",
+    "match": true,
+    "scores": {
+      "Emergency": 0.55,
+      "Cardiology": 0.05,
+      "Neurology": 1.0,
+      "Respiratory": 0.05,
+      "Orthopedics": 0.05,
+      "General Medicine": 0.2
+    }
+  },
+  {
+    "test": "RESPIRATORY - Breathing Issues + Asthma",
+    "expected": "Respiratory",
+    "actual": "Respiratory",
+    "match": true,
+    "scores": {
+      "Emergency": 0.55,
+      "Cardiology": 0.05,
+      "Neurology": 0.05,
+      "Respiratory": 1.0,
+      "Orthopedics": 0.05,
+      "General Medicine": 0.4
+    }
+  },
+  {
+    "test": "ORTHOPEDICS - Joint Pain + Arthritis",
+    "expected": "Orthopedics",
+    "actual": "Orthopedics",
+    "match": true,
+    "scores": {
+      "Emergency": 0.55,
+      "Cardiology": 0.05,
+      "Neurology": 0.05,
+      "Respiratory": 0.05,
+      "Orthopedics": 1.0,
+      "General Medicine": 0.4
+    }
+  },
+  {
+    "test": "GENERAL MEDICINE - Low Risk Multiple Chronic",
+    "expected": "General Medicine",
+    "actual": "General Medicine",
+    "match": true,
+    "scores": {
+      "Emergency": 0.1,
+      "Cardiology": 0.3,
+      "Neurology": 0.3,
+      "Respiratory": 0.05,
+      "Orthopedics": 0.35,
+      "General Medicine": 0.65
+    }
+  }
+]
