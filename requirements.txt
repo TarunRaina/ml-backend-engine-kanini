@@ -1,0 +1,29 @@
+# Core Web Framework
+fastapi
+uvicorn[standard]
+
+# Database
+supabase
+
+# ML Pipeline
+xgboost
+scikit-learn
+shap
+joblib
+pandas
+numpy
+
+# Config + Schemas
+pydantic
+pydantic-settings
+python-dotenv
+python-multipart
+
+# Utilities
+tqdm
+requests
+
+# Testing + Dev
+pytest
+httpx
+black

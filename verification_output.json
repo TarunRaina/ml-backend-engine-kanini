@@ -1,0 +1,20 @@
+{
+  "risk_level": "Low",
+  "risk_score": 0.7499,
+  "recommended_department": "Cardiology",
+  "department_scores": {
+    "Cardiology": 0.5230889916419983,
+    "Emergency": 0.023990293964743614,
+    "General Medicine": 0.18399925529956818,
+    "Neurology": 0.050295788794755936,
+    "Orthopedics": 0.04736081138253212,
+    "Respiratory": 0.17126481235027313
+  },
+  "explainability": {
+    "chest_pain_severity": 3.5231,
+    "max_severity": 1.0846,
+    "age": 0.8236,
+    "cardiac_history": 0.7369,
+    "bp_systolic": 0.6787
+  }
+}
