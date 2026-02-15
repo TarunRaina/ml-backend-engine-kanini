@@ -1,0 +1,40 @@
+{
+  "risk_level": "Medium",
+  "risk_score": 0.4,
+  "primary_department": "Orthopedics",
+  "department_scores": {
+    "Emergency": 0.55,
+    "Cardiology": 0.3,
+    "Neurology": 0.05,
+    "Respiratory": 0.05,
+    "Orthopedics": 1.0,
+    "General Medicine": 0.4
+  },
+  "explainability": {
+    "risk_factors": {
+      "critical_symptoms": [
+        "joint pain (severity 5)"
+      ],
+      "cardiac_history": [
+        "Hypertension"
+      ]
+    },
+    "department_reasoning": {
+      "Orthopedics": "Musculoskeletal symptoms: Back stiffness, Joint pain, Muscle weakness + Orthopedic history: Arthritis",
+      "Emergency": "Critical symptoms present"
+    },
+    "score_breakdown": {
+      "symptom_score": 22,
+      "vitals_score": 0,
+      "history_score": 18,
+      "age_score": 0,
+      "total": 40
+    }
+  },
+  "confidence": {
+    "overall": 0.78,
+    "data_completeness": 1.0,
+    "decision_clarity": 0.45,
+    "has_critical_indicators": true
+  }
+}

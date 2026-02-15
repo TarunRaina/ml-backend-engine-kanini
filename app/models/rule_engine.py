@@ -154,8 +154,11 @@ class RuleBasedTriageEngine:
             'total_symptoms': len(symptoms),
             'has_chest_pain': any('chest pain' in s.get('symptom_name', '').lower() for s in symptoms),
             'has_seizures': any('seizure' in s.get('symptom_name', '').lower() for s in symptoms),
-            'has_respiratory': any(word in s.get('symptom_name', '').lower() for s in symptoms for word in ['breath', 'dyspnea', 'cough']),
-            'has_neuro': any(word in s.get('symptom_name', '').lower() for s in symptoms for word in ['dizziness', 'headache', 'numbness', 'tingling', 'seizure'])
+            'has_respiratory': any(word in s.get('symptom_name', '').lower() for s in symptoms for word in ['breath', 'dyspnea', 'cough', 'wheezing']),
+            'has_neuro': any(word in s.get('symptom_name', '').lower() for s in symptoms for word in ['dizziness', 'headache', 'numbness', 'tingling', 'seizure']),
+            'has_orthopedic': any(word in s.get('symptom_name', '').lower() for s in symptoms for word in ['joint pain', 'back', 'neck pain', 'stiffness', 'weakness', 'muscle', 'bone', 'fracture', 'sprain']),
+            'orthopedic_symptoms': [s.get('symptom_name', '') for s in symptoms if any(word in s.get('symptom_name', '').lower() for word in ['joint pain', 'back', 'neck pain', 'stiffness', 'weakness', 'muscle', 'bone', 'fracture', 'sprain'])],
+            'raw_symptoms': symptoms
         }
     
     def _analyze_vitals(self, vitals: Dict, age: int) -> Dict[str, Any]:
@@ -236,6 +239,7 @@ class RuleBasedTriageEngine:
         cardiac_conditions = []
         respiratory_conditions = []
         neuro_conditions = []
+        orthopedic_conditions = []
         chronic_count = 0
         
         for item in history:
@@ -262,6 +266,11 @@ class RuleBasedTriageEngine:
                 score += 7
                 neuro_conditions.append(condition.title())
             
+            # ORTHOPEDIC CONDITIONS
+            if any(word in condition for word in ['arthritis', 'osteoporosis', 'fracture', 'joint', 'bone', 'spine', 'disc']):
+                score += 6
+                orthopedic_conditions.append(condition.title())
+            
             # DIABETES
             if 'diabetes' in condition:
                 score += 5
@@ -275,10 +284,12 @@ class RuleBasedTriageEngine:
             'cardiac_conditions': cardiac_conditions,
             'respiratory_conditions': respiratory_conditions,
             'neuro_conditions': neuro_conditions,
+            'orthopedic_conditions': orthopedic_conditions,
             'chronic_count': chronic_count,
             'has_cardiac_history': len(cardiac_conditions) > 0,
             'has_respiratory_history': len(respiratory_conditions) > 0,
-            'has_neuro_history': len(neuro_conditions) > 0
+            'has_neuro_history': len(neuro_conditions) > 0,
+            'has_orthopedic_history': len(orthopedic_conditions) > 0
         }
     
     def _calculate_age_factor(self, age: int) -> int:
@@ -354,11 +365,27 @@ class RuleBasedTriageEngine:
         if vitals_analysis['has_fever'] and symptom_analysis['has_respiratory']:
             scores['Respiratory'] += 0.25
         
-        # ORTHOPEDICS
-        if any(word in chief_complaint for word in ['joint', 'bone', 'fracture', 'back pain', 'neck pain']):
-            scores['Orthopedics'] += 0.35
-        if 'arthritis' in str(history_analysis['conditions']).lower():
-            scores['Orthopedics'] += 0.20
+        # ORTHOPEDICS - COMPLETELY REWRITTEN
+        ortho_score = 0.05  # Base score
+        
+        # Check symptoms for orthopedic indicators
+        if symptom_analysis['has_orthopedic']:
+            ortho_score += 0.50  # Strong indicator
+            
+            # Check severity of orthopedic symptoms
+            ortho_symptoms = symptom_analysis.get('orthopedic_symptoms', [])
+            if len(ortho_symptoms) >= 2:
+                ortho_score += 0.20  # Multiple orthopedic symptoms
+        
+        # Check chief complaint
+        if any(word in chief_complaint for word in ['joint', 'bone', 'fracture', 'back', 'neck', 'stiffness', 'weakness', 'muscle', 'sprain']):
+            ortho_score += 0.30
+        
+        # Check medical history
+        if history_analysis.get('has_orthopedic_history', False):
+            ortho_score += 0.25
+        
+        scores['Orthopedics'] = min(ortho_score, 1.0)
         
         # GENERAL MEDICINE
         if total_risk < 40:
@@ -471,6 +498,13 @@ class RuleBasedTriageEngine:
                         reasons.append("Respiratory symptoms")
                     if history_analysis['has_respiratory_history']:
                         reasons.append(f"Respiratory history: {', '.join(history_analysis['respiratory_conditions'][:2])}")
+                
+                elif dept == 'Orthopedics':
+                    if symptom_analysis.get('has_orthopedic', False):
+                        ortho_symp = symptom_analysis.get('orthopedic_symptoms', [])
+                        reasons.append(f"Musculoskeletal symptoms: {', '.join(ortho_symp[:3])}")
+                    if history_analysis.get('has_orthopedic_history', False):
+                        reasons.append(f"Orthopedic history: {', '.join(history_analysis.get('orthopedic_conditions', [])[:2])}")
                 
                 if reasons:
                     dept_reasoning[dept] = " + ".join(reasons)
