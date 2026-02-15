@@ -68,10 +68,16 @@ class MLEngine:
         return pd.DataFrame([data], columns=FEATURES)
     
     def predict(self, patient_data: Dict[str, Any]) -> Dict[str, Any]:
-        """FULL PRODUCTION PIPELINE: risk + single-label dept probas"""
+        """FULL PRODUCTION PIPELINE: rule-based overrides + ML predictions"""
         X = self.preprocess_input(patient_data)
         
-        # 1. RISK TRIAGE
+        # SAFETY OVERRIDES - Catch critical cases before ML
+        override = self._check_critical_overrides(patient_data)
+        if override:
+            logging.info(f"🚨 CRITICAL OVERRIDE: {override['reason']}")
+            return override['prediction']
+        
+        # 1. RISK TRIAGE (ML Model)
         risk_pred_idx = self.model_data['risk_model'].predict(X)[0]
         risk_proba = self.model_data['risk_model'].predict_proba(X)[0]
         
@@ -100,6 +106,126 @@ class MLEngine:
             'department_scores': dept_scores,
             'explainability': explainability
         }
+    
+    def _check_critical_overrides(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Rule-based safety checks for critical cases that bypass ML model"""
+        
+        # Extract key features
+        max_sev = data.get('max_severity', 0)
+        chest_pain = data.get('chest_pain_severity', 0)
+        bp_sys = data.get('bp_systolic', 120)
+        bp_dia = data.get('bp_diastolic', 80)
+        hr = data.get('heart_rate', 80)
+        temp = data.get('temperature', 98.6)
+        comorbidities = data.get('comorbidities_count', 0)
+        cardiac_hist = data.get('cardiac_history', 0)
+        
+        # RULE 1: Severe symptoms (max_severity >= 4)
+        if max_sev >= 4:
+            return {
+                'reason': f'Severe symptoms (severity={max_sev})',
+                'prediction': {
+                    'risk_level': 'High',
+                    'risk_score': 0.95,
+                    'recommended_department': 'Emergency',
+                    'department_scores': {
+                        'Emergency': 0.95,
+                        'Cardiology': 0.02,
+                        'General Medicine': 0.01,
+                        'Neurology': 0.01,
+                        'Orthopedics': 0.005,
+                        'Respiratory': 0.005
+                    },
+                    'explainability': {
+                        'max_severity': max_sev,
+                        'chest_pain_severity': chest_pain,
+                        'bp_systolic': bp_sys,
+                        'comorbidities_count': comorbidities,
+                        'cardiac_history': cardiac_hist
+                    }
+                }
+            }
+        
+        # RULE 2: Severe chest pain (>= 4) with cardiac history
+        if chest_pain >= 4 and cardiac_hist == 1:
+            return {
+                'reason': f'Severe chest pain ({chest_pain}) + cardiac history',
+                'prediction': {
+                    'risk_level': 'High',
+                    'risk_score': 0.92,
+                    'recommended_department': 'Emergency',
+                    'department_scores': {
+                        'Emergency': 0.70,
+                        'Cardiology': 0.25,
+                        'General Medicine': 0.02,
+                        'Neurology': 0.01,
+                        'Orthopedics': 0.01,
+                        'Respiratory': 0.01
+                    },
+                    'explainability': {
+                        'chest_pain_severity': chest_pain,
+                        'cardiac_history': cardiac_hist,
+                        'bp_systolic': bp_sys,
+                        'heart_rate': hr,
+                        'age': data.get('age', 40)
+                    }
+                }
+            }
+        
+        # RULE 3: Critical vitals (BP >= 180/110 OR HR >= 120)
+        if bp_sys >= 180 or bp_dia >= 110 or hr >= 120:
+            return {
+                'reason': f'Critical vitals (BP={bp_sys}/{bp_dia}, HR={hr})',
+                'prediction': {
+                    'risk_level': 'High',
+                    'risk_score': 0.93,
+                    'recommended_department': 'Emergency',
+                    'department_scores': {
+                        'Emergency': 0.85,
+                        'Cardiology': 0.10,
+                        'General Medicine': 0.02,
+                        'Neurology': 0.01,
+                        'Orthopedics': 0.01,
+                        'Respiratory': 0.01
+                    },
+                    'explainability': {
+                        'bp_systolic': bp_sys,
+                        'bp_diastolic': bp_dia,
+                        'heart_rate': hr,
+                        'age': data.get('age', 40),
+                        'cardiac_history': cardiac_hist
+                    }
+                }
+            }
+        
+        # RULE 4: Multiple comorbidities (>= 3) + elevated vitals
+        if comorbidities >= 3 and (bp_sys >= 150 or hr >= 100):
+            return {
+                'reason': f'Multiple comorbidities ({comorbidities}) + elevated vitals',
+                'prediction': {
+                    'risk_level': 'High',
+                    'risk_score': 0.88,
+                    'recommended_department': 'Emergency',
+                    'department_scores': {
+                        'Emergency': 0.75,
+                        'Cardiology': 0.15,
+                        'General Medicine': 0.05,
+                        'Neurology': 0.02,
+                        'Orthopedics': 0.02,
+                        'Respiratory': 0.01
+                    },
+                    'explainability': {
+                        'comorbidities_count': comorbidities,
+                        'bp_systolic': bp_sys,
+                        'heart_rate': hr,
+                        'age': data.get('age', 40),
+                        'chronic_conditions': data.get('chronic_conditions', 0)
+                    }
+                }
+            }
+        
+        # No override needed - use ML model
+        return None
     
     def _real_shap_explanation(self, X: pd.DataFrame) -> Dict[str, float]:
         """Generate SHAP values for the prediction"""
