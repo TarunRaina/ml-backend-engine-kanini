@@ -96,13 +96,28 @@ class MLEngine:
             for cls, prob in zip(dept_classes, dept_probas)
         }
         
+        # MULTI-LABEL: Get all departments above threshold
+        DEPT_THRESHOLD = 0.35  # Conservative threshold
+        recommended_depts = [
+            dept for dept, score in dept_scores.items() 
+            if score >= DEPT_THRESHOLD
+        ]
+        
+        # If no departments above threshold, use the highest scoring one
+        if not recommended_depts:
+            recommended_depts = [recommended_dept]
+        
+        # Primary department is the highest scoring
+        primary_dept = recommended_dept
+        
         # 3. EXPLAINABILITY
         explainability = self._real_shap_explanation(X)
         
         return {
             'risk_level': str(risk_level),
             'risk_score': round(risk_score, 4),
-            'recommended_department': str(recommended_dept),
+            'recommended_departments': recommended_depts,  # Multi-label array
+            'primary_department': str(primary_dept),  # Highest score
             'department_scores': dept_scores,
             'explainability': explainability
         }
@@ -127,7 +142,8 @@ class MLEngine:
                 'prediction': {
                     'risk_level': 'High',
                     'risk_score': 0.95,
-                    'recommended_department': 'Emergency',
+                    'recommended_departments': ['Emergency'],
+                    'primary_department': 'Emergency',
                     'department_scores': {
                         'Emergency': 0.95,
                         'Cardiology': 0.02,
@@ -153,7 +169,8 @@ class MLEngine:
                 'prediction': {
                     'risk_level': 'High',
                     'risk_score': 0.92,
-                    'recommended_department': 'Emergency',
+                    'recommended_departments': ['Emergency', 'Cardiology'],
+                    'primary_department': 'Emergency',
                     'department_scores': {
                         'Emergency': 0.70,
                         'Cardiology': 0.25,
@@ -179,7 +196,8 @@ class MLEngine:
                 'prediction': {
                     'risk_level': 'High',
                     'risk_score': 0.93,
-                    'recommended_department': 'Emergency',
+                    'recommended_departments': ['Emergency'],
+                    'primary_department': 'Emergency',
                     'department_scores': {
                         'Emergency': 0.85,
                         'Cardiology': 0.10,
@@ -205,7 +223,8 @@ class MLEngine:
                 'prediction': {
                     'risk_level': 'High',
                     'risk_score': 0.88,
-                    'recommended_department': 'Emergency',
+                    'recommended_departments': ['Emergency'],
+                    'primary_department': 'Emergency',
                     'department_scores': {
                         'Emergency': 0.75,
                         'Cardiology': 0.15,
